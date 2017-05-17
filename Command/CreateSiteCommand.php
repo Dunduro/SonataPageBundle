@@ -48,7 +48,7 @@ class CreateSiteCommand extends BaseCommand
 The <info>sonata:page:create-site</info> command create a new site entity.
 
 EOT
-);
+        );
     }
 
     /**
@@ -56,7 +56,11 @@ EOT
      */
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $dialog = $this->getHelperSet()->get('dialog');
+        if(!$this->getHelperSet()->has('question')) {
+            $helper = $this->getHelperSet()->get('dialog');
+        }else{
+            $helper = $this->getHelperSet()->get('question');
+        }
 
         $values = array(
             'name' => null,
@@ -73,7 +77,7 @@ EOT
             $values[$name] = $input->getOption($name);
 
             while ($values[$name] == null) {
-                $values[$name] = $dialog->ask($output, sprintf('Please define a value for <info>Site.%s</info> : ', $name));
+                $values[$name] = $helper->ask($output, sprintf('Please define a value for <info>Site.%s</info> : ', $name));
             }
         }
 
@@ -104,7 +108,14 @@ Creating website with the following information :
 INFO
 );
 
-        if ($input->getOption('no-confirmation') || $dialog->askConfirmation($output, 'Confirm site creation ?', false)) {
+
+        if(!$this->getHelperSet()->has('question')) {
+            $confirmation = $input->getOption('no-confirmation') || $helper->askConfirmation($output, 'Confirm site creation ?', false);
+        }else{
+            $question = new \Symfony\Component\Console\Question\ConfirmationQuestion('Confirm site creation (Y/N)', false,'/^(y|j)/i');
+            $confirmation = $helper->ask($input, $output, $question);
+        }
+        if ($confirmation) {
             $this->getSiteManager()->save($site);
 
             $output->writeln(array(
