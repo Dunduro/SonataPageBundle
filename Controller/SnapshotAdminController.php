@@ -46,7 +46,10 @@ class SnapshotAdminController extends Controller
 
         $snapshot->setPage($page);
 
-        $form = $this->createForm('sonata_page_create_snapshot', $snapshot);
+        $form = $this->createForm(method_exists('Symfony\Component\Form\AbstractType', 'getBlockPrefix') ?
+            'Sonata\PageBundle\Form\Type\CreateSnapshotType' :
+            'sonata_page_create_snapshot',
+            $snapshot);
 
         if ($request->getMethod() == 'POST') {
             $form->submit($request);
